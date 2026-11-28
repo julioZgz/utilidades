@@ -55,3 +55,5 @@ input{width:100%;padding:12px;border-radius:8px;border:1px solid var(--ln);backg
 /* Modales (#md): fondo más oscuro (gana al estilo en línea del HTML) y sin scroll detrás cuando está abierta (display:flex puesto por JS) */
 #md{background:#000e!important;overscroll-behavior:contain;touch-action:none}#md .card{overscroll-behavior:contain;touch-action:pan-y}
 html:has(#md[style*="display: flex"]),body:has(#md[style*="display: flex"]){overflow:hidden}
+/* Modal de información (info.js): imagen grande */
+.big{display:flex;justify-content:center;margin-bottom:8px}.big .ic{width:min(60vw,200px);height:min(60vw,200px);border-radius:16px}.big .ic svg{width:60%;height:60%}

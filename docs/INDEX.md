@@ -276,6 +276,12 @@ Orden de carga = orden de este índice. Helpers pequeños declarados en la misma
 - `cfOpen(o)` · `o` = `{t,i,g,f,c?,x?}` (título, texto, texto de la acción, función que la ejecuta, color opcional, onclick de cancelar opcional) · tarjeta `.card` sobre `#md` con Cancelar (`o.x` o `closeM()`) y la acción (color `o.c` o `#e8a86a`) · → $
 - `cfGo()` · vacía `CFM`, cierra con `closeM` y ejecuta `f` · → closeM
 
+## info.js
+- `INLB` / `INLT` textos largos de ambientación por edificio y por tecnología (solo texto) · `INEB` / `INET` qué da el nivel L (edificio: `(L,p,q)`, con `q` = copia de la colonia con ese nivel; tecnología: `L`) · `INUT` qué desbloquea el nivel L de una tecnología · `infN` número con coma, `infS` % de reducción de tiempo por nivel, `infQ` copia de la colonia con el edificio a nivel L
+- `infoUnB(p,k,L)` · p.b · qué desbloquea el nivel L de un edificio: recorre `RQ` de los demás edificios (hasta `maxL`) y apunta los requisitos que pasan a cumplirse al subir de L−1 a L; para `z` devuelve '' (su efecto ya sale en «da») · → RQ,maxL
+- `infoBox(t,d,u,r)` · bloque «Nivel …» con lo que da (`d`), lo que desbloquea (`u`) y lo que falta para subirlo (`r`) · `infoOpen(img,name,sub,lore,sum,boxes)` · modal sobre `#md` con botón «Cerrar» (`closeM`)
+- `infoB(k)` · P(SP) · modal de un edificio de la colonia seleccionada: imagen `bic`, nivel actual y siguiente (`RQ` para «para subirlo»; si está dañado avisa) · → bic,maxL,RQ,prod,rbT,capK,reqTxt,U,P · `infoT(k)` · S.tech · modal de una tecnología: imagen `tic`, nivel actual y siguiente (laboratorio y `trq` para «para subirlo») · → tic,lv,trq,P
+
 ## ui-art.js
 - `icon(p,c)`
 - `INV` (Set de ids de investigación con imagen cargada) · `INVN` (contador de pruebas terminadas; al llegar a todas y con `S`, hace `render`) · `tic(k)` · icono de investigación: imagen `img/research/<k>.webp` si está en `INV`, si no el SVG de `TI`; lo usa la vista Laboratorio (`view`)
@@ -298,7 +304,7 @@ Orden de carga = orden de este índice. Helpers pequeños declarados en la misma
 - `warn(p)` · p.rb,p.dm
 - `chips(c)` · → fmt
 - `chipsS(c)` · → fmt
-- `card()` · → fmtT
+- `card()` · → fmtT · 13.º parámetro opcional `inf` (onclick de la ⓘ; si viene, abre el modal de info en vez de desplegar la descripción; lo pasan `view` con `infoB`/`infoT`)
 - `showAway(ms,t0,ev)` · S.rf · → fmt,fmtT,tot,closeM
 - `toast(t,pid,v)` · localStorage setItem:je_sp · → render
 - `QTY` (modal de cantidad abierta; no se guarda)
@@ -325,7 +331,7 @@ Orden de carga = orden de este índice. Helpers pequeños declarados en la misma
 - `queueView()` · S.cs,S.tech,S.mis,S.rk · p.q,p.b,p.rr,p.rq,p.sq,p.bq,p.sqq · → goTo,mTx,spTx,exTx
 - `raidView()` · S.fleet,S.mis,S.tech,S.ru,S.rk,S.wr,S.rd,S.tr · «Contraataque X %» por puesto con `semC(cp,20,40)` y botón `dpEx` · desgaste del planeta con color (`semC(wp,10,30)`: verde <10 %, amarillo <30 %, rojo) · → fmtT,planet,need,exOpen,openRaid,rdTy,rdN,wrP,rdDef,semC,cxPct,cxN,dpEx
 - `portView(p)` · sub-pestañas Colonización (`mapView`), Saqueos (`raidView`) y Misiones en curso (`missionsView`); cada una solo si `tabVis` lo permite (Misiones, siempre) · `empireView(p)` · sub-pestañas Estadísticas (`statsView`), Eventos (`histView`), Comercio (`tradeView`) y Colas (`queueView`) · → tabVis,subTabs,histView,rcEx
-- `view(p)` · pestañas Colonia (Arca solo en el Hogar; «Pedir suministros»/rutas y «Abandonar colonia» arriba), Laboratorio (bloque colapsable «Investigaciones»), Astillero, Puerto (`portView`) e Imperio (`empireView`) · S.tech,S.cs,S.fleet,S.mis,S.net,S.u,S.known · p.q,p.b,p.rr,p.rq,p.sq,p.dm · → arkBtn,arkDone,cost,fmt,fmtT,prod,reqTxt,trq,shUn,shUnT,tabVis,tabAct,repC,maxL,icon,bic,planet,card,slots,build,qBlock,bqList,sqList,research,ship,repair,cancelRR,rrCard,cancelB,cancelR,cancelS,need,send,selPlanet,comm,tin,tmax,trade,abandon,dsEx,cvOpen,exOpen,spEx,dbEx,rcEx
+- `view(p)` · pestañas Colonia (Arca solo en el Hogar; «Pedir suministros»/rutas y «Abandonar colonia» arriba), Laboratorio (bloque colapsable «Investigaciones»), Astillero, Puerto (`portView`) e Imperio (`empireView`) · S.tech,S.cs,S.fleet,S.mis,S.net,S.u,S.known · p.q,p.b,p.rr,p.rq,p.sq,p.dm · → infoB,infoT,arkBtn,arkDone,cost,fmt,fmtT,prod,reqTxt,trq,shUn,shUnT,tabVis,tabAct,repC,maxL,icon,bic,planet,card,slots,build,qBlock,bqList,sqList,research,ship,repair,cancelRR,rrCard,cancelB,cancelR,cancelS,need,send,selPlanet,comm,tin,tmax,trade,abandon,dsEx,cvOpen,exOpen,spEx,dbEx,rcEx
 
 ## render.js
 - `render()` · S.cs · p.nj · el menú de secciones llama a `tabGo` · → tabVis,tabAct,warn,planet,orb,rfCard,selPlanet,openBk,openObj,load,logout,view,arkIc
