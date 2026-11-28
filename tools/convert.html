@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Convertir imágenes a 128×128 WebP</title>
+<style>
+body{margin:0;padding:16px;background:#0d1523;color:#e8eefb;font:15px/1.4 system-ui,sans-serif}
+main{max-width:720px;margin:0 auto}
+h1{font-size:20px;margin:0 0 8px}
+p,.st{color:#93a4c4;font-size:13px}
+#dz{border:2px dashed #2a3b5e;border-radius:12px;padding:28px;text-align:center;background:#16213a;cursor:pointer}
+#dz.on{border-color:#5be3b0}
+input[type=text]{width:100%;padding:8px;border-radius:8px;border:1px solid #2a3b5e;background:#0d1523;color:#e8eefb;font:inherit;margin:6px 0 0}
+input[type=range]{width:100%}
+button{width:100%;background:#5be3b0;color:#06231a;border:0;border-radius:8px;padding:12px;font:inherit;font-weight:600;cursor:pointer;margin-top:8px}
+button.s{background:#26344f;color:#e8eefb;padding:8px;margin-top:6px}
+button:disabled{background:#26344f;color:#93a4c4;cursor:default}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
+.g div{background:#16213a;border:1px solid #2a3b5e;border-radius:10px;padding:8px;text-align:center}
+.g canvas{width:128px;height:128px;border-radius:8px;background:#0d1523;display:block;margin:0 auto}
+</style></head><body><main>
+<h1>Convertir imágenes a 128×128 WebP</h1>
+<p>Arrastra aquí todas las imágenes que quieras (PNG, JPG, WebP…). Cada una se recorta al centro en cuadrado, se reduce a 128×128 y se convierte a WebP. El <b>nombre de cada archivo</b> es el que pondrás en el juego: escribe su id en minúscula (p. ej. <code>p</code>, <code>a</code>, <code>w</code>); si el archivo ya se llama así, no hace falta tocar nada. Funciona en Chrome, Edge y Firefox.</p>
+<div id="dz">Arrastra las imágenes aquí o pulsa para elegirlas</div>
+<input id="f" type="file" accept="image/*" multiple hidden>
+<div class="st" style="margin-top:10px">Calidad WebP: <b id="qv">85</b></div>
+<input id="q" type="range" min="60" max="100" value="85">
+<div id="info" class="st"></div>
+<button id="all" disabled>Descargar todas</button>
+<div class="g" id="g"></div>
+</main>
+<script>
+const $=s=>document.querySelector(s);let items=[];
+function stem(n){return n.replace(/\.[^.]+$/,'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'')}
+function load(files){const fs=[...files].filter(f=>f.type.startsWith('image/')).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+Promise.all(fs.map(f=>new Promise(ok=>{const im=new Image();im.onload=()=>ok({f,im});im.onerror=()=>ok(null);im.src=URL.createObjectURL(f)}))).then(a=>{items=a.filter(Boolean);show()})}
+function show(){const g=$('#g');g.innerHTML='';
+items.forEach((it,i)=>{const d=document.createElement('div'),c=document.createElement('canvas');c.width=c.height=128;
+const x=c.getContext('2d'),im=it.im,s=Math.min(im.naturalWidth,im.naturalHeight);x.imageSmoothingQuality='high';x.drawImage(im,(im.naturalWidth-s)/2,(im.naturalHeight-s)/2,s,s,0,0,128,128);it.c=c;
+const t=document.createElement('input');t.type='text';t.value=stem(it.f.name);t.oninput=()=>{it.id=t.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,'')};it.id=t.value;
+const b=document.createElement('button');b.className='s';b.textContent='Descargar';b.onclick=()=>dl(it);
+d.append(c,t,b);g.append(d)});
+$('#all').disabled=!items.length;$('#info').textContent=items.length?items.length+' imagen'+(items.length>1?'es':'')+' lista'+(items.length>1?'s':'')+'. Comprueba los nombres y descarga.':''}
+function dl(it){return new Promise(ok=>{if(!it.id){$('#info').textContent='Falta el nombre de alguna imagen.';return ok()}
+it.c.toBlob(b=>{if(!b||b.type!=='image/webp'){$('#info').textContent='Este navegador no exporta WebP; usa Chrome, Edge o Firefox.';return ok()}
+const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=it.id+'.webp';a.click();ok()},'image/webp',$('#q').value/100)})}
+$('#all').onclick=async()=>{for(const it of items){await dl(it);await new Promise(r=>setTimeout(r,350))}};
+const dz=$('#dz'),f=$('#f');dz.onclick=()=>f.click();f.onchange=()=>load(f.files);
+dz.ondragover=e=>{e.preventDefault();dz.classList.add('on')};dz.ondragleave=()=>dz.classList.remove('on');
+dz.ondrop=e=>{e.preventDefault();dz.classList.remove('on');load(e.dataTransfer.files)};
+$('#q').oninput=e=>{$('#qv').textContent=e.target.value;if(items.length)show()};
+</script></body></html>

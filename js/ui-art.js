@@ -1,12 +1,12 @@
 /* ui-art.js — Dibujo: iconos SVG (BI, TI, SI, icon), sprite edificios.webp (SPM, SPR, bic), planetas (planet, orb).
- * Lee: S solo para pintar. Escribe: SPR, INV, INVN, NAV, NAVN. Carga edificios.webp, img/research/<id>.webp e img/ships/<id>.webp.
+ * Lee: S solo para pintar. Escribe: SPR, INV, INVN, NAV, NAVN, BLD, BLDN. Carga edificios.webp, img/buildings/<id>.webp, img/research/<id>.webp e img/ships/<id>.webp.
  * NO debe: mutar S ni contener reglas.
  * Movido tal cual de juego-espacial.html original; ver ARCHITECTURE.md. */
 const icon=(p,c)=>`<div class="ic ${c||''}"><svg viewBox="0 0 48 48" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${p}</svg></div>`;
 const SPM={l:0,s:1,c:2,g:3,a:4};
 let SPR=false;
 if(typeof Image!=='undefined'){const spr=new Image();spr.onload=()=>{SPR=true;if(S)render()};spr.src='img/edificios.webp'}
-const bic=(k,L,dm)=>SPR&&k in SPM?`<div class="ic sp${L?'':' off'}${dm?' dmg':''}" style="--c:${Math.max(0,Math.min(4,Math.floor((L-1)/2)))};--r:${SPM[k]}"></div>`:icon(BI[k],k in IDX?k:'');
+const bic=(k,L,dm)=>k in BLD?`<div class="ic sp bs${L?'':' off'}${dm?' dmg':''}" style="background-image:url(img/buildings/${k}.webp);background-size:${BLD[k]*100}% 100%;background-position:${BLD[k]>1?Math.min(L>7?2:L>4?1:0,BLD[k]-1)*100/(BLD[k]-1):0}% 0"></div>`:SPR&&k in SPM?`<div class="ic sp${L?'':' off'}${dm?' dmg':''}" style="--c:${Math.max(0,Math.min(4,Math.floor((L-1)/2)))};--r:${SPM[k]}"></div>`:icon(BI[k],k in IDX?k:'');
 const BI={z:`<path d="M24 6l16 8v10c0 10-8 16-16 18C16 40 8 34 8 24V14z"/><path d="M18 24l4 4 8-9"/>`,
 m:`<path d="M6 40L18 18l8 12 6-8 10 18z"/><path d="M14 8l20 8M24 6l-6 12"/>`,
 c:`<path d="M24 6l10 10-10 26L14 16z"/><path d="M14 16h20M24 6v36"/>`,
@@ -57,6 +57,9 @@ const tic=k=>INV.has(k)?`<div class="ic im"><img src="img/research/${k}.webp" al
 const NAV=new Set();let NAVN=0;
 if(typeof Image!=='undefined'){const tot=Object.keys(SH).length,fin=()=>{if(++NAVN===tot&&S)render()};for(const k in SH){const im=new Image();im.onload=()=>{NAV.add(k);fin()};im.onerror=fin;im.src='img/ships/'+k+'.webp'}}
 const sic=k=>NAV.has(k)?`<div class="ic im"><img src="img/ships/${k}.webp" alt=""></div>`:icon(SI[k]);
+/* Imágenes de edificios: img/buildings/<id>.webp = tira horizontal de N variantes cuadradas (128x128 cada una; N = ancho/alto, se lee de la propia imagen). Variante por nivel: 1-4 la primera, 5-7 la segunda, 8 o más la tercera (si hay menos variantes, la última). Tiene prioridad sobre el sprite y el SVG; si falta, se usa lo de siempre. */
+const BLD={};let BLDN=0;
+if(typeof Image!=='undefined'){const ks=Object.keys(BI),fin=()=>{if(++BLDN===ks.length&&S)render()};ks.forEach(k=>{const im=new Image();im.onload=()=>{BLD[k]=Math.max(1,Math.round(im.naturalWidth/im.naturalHeight));fin()};im.onerror=fin;im.src='img/buildings/'+k+'.webp'})}
 let gid=0;
 function planet(id,sz,unk){
 if(unk)return `<svg width="${sz}" height="${sz}" viewBox="0 0 64 64" style="flex:none"><circle cx="32" cy="32" r="22" fill="#111c31" stroke="#2a3b5e" stroke-width="2" stroke-dasharray="4 4"/><text x="32" y="41" text-anchor="middle" font-size="24" fill="#93a4c4" font-family="Chakra Petch,sans-serif">?</text></svg>`;

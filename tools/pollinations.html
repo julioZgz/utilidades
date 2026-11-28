@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tres fases de un edificio con la misma semilla</title>
+<style>
+body{margin:0;padding:16px;background:#0d1523;color:#e8eefb;font:15px/1.4 system-ui,sans-serif}
+main{max-width:720px;margin:0 auto}
+h1{font-size:20px;margin:0 0 8px}
+p,.st{color:#93a4c4;font-size:13px}
+textarea,input[type=text],input[type=number]{width:100%;padding:10px;border-radius:8px;border:1px solid #2a3b5e;background:#16213a;color:#e8eefb;font:inherit;margin:4px 0 10px}
+textarea{min-height:64px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+button{width:100%;background:#5be3b0;color:#06231a;border:0;border-radius:8px;padding:12px;font:inherit;font-weight:600;cursor:pointer;margin-top:6px}
+button.s{background:#26344f;color:#e8eefb}
+button:disabled{background:#26344f;color:#93a4c4;cursor:default}
+.g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.g div{background:#16213a;border:1px solid #2a3b5e;border-radius:10px;padding:6px;text-align:center}
+.g img{width:100%;aspect-ratio:1;border-radius:8px;background:#0d1523;display:block}
+canvas{display:none}
+</style></head><body><main>
+<h1>Tres fases de un edificio con la misma semilla</h1>
+<p>Escribe qué es el edificio (en inglés), pulsa «Generar las 3» y se piden tres imágenes con la <b>misma semilla</b>, cambiando solo la fase (pequeña, media, desarrollada). Si te gustan, descarga la tira lista para <code>img/buildings/</code>. Se usa el servicio gratuito Pollinations (sin registro); necesita internet, pide las imágenes de una en una y reintenta si falla, así que puede tardar un minuto.</p>
+<div class="st">Motivo del edificio (inglés)</div>
+<textarea id="m" placeholder="p. ej. defensive stone wall with watch towers"></textarea>
+<div class="row"><div><div class="st">Id del edificio (nombre del archivo)</div><input id="id" type="text" maxlength="2" placeholder="p. ej. w"></div>
+<div><div class="st">Semilla (el mismo número = misma base)</div><input id="seed" type="number" value="1234"></div></div>
+<button class="s" id="rnd">Semilla al azar</button>
+<div class="st" style="margin-top:10px">Frase de estilo (la de siempre)</div>
+<textarea id="st">Flat vector game icon, single centered object, bold simple shapes, soft rim light from top-left, subtle glow, limited palette of deep navy, steel blue and warm amber (#e8a86a) with small cyan accents, dark navy background (#111c31), no text, no border, no extra objects, readable at 34 px, square 1:1</textarea>
+<div class="st">Fases (puedes cambiarlas)</div>
+<input id="p1" type="text" value="small, early stage, simple construction">
+<input id="p2" type="text" value="medium, upgraded, more details and lights">
+<input id="p3" type="text" value="large, fully developed, elaborate and glowing">
+<label class="st" style="display:block;margin:6px 0"><input id="cr" type="checkbox" checked> Recortar un poco abajo y a la derecha para quitar la marca «pollinations.ai» (pierde el borde de la imagen)</label>
+<button id="go">Generar las 3</button>
+<div id="info" class="st"></div>
+<div class="g"><div><img id="i1" alt=""><span class="st">1 · niveles 1-4</span></div><div><img id="i2" alt=""><span class="st">2 · niveles 5-7</span></div><div><img id="i3" alt=""><span class="st">3 · niveles 8+</span></div></div>
+<button id="dl" disabled>Descargar tira .webp (3 variantes)</button>
+<canvas id="cv" width="384" height="128"></canvas>
+</main>
+<script>
+const $=s=>document.querySelector(s),blobs=[null,null,null];
+$('#rnd').onclick=()=>{$('#seed').value=Math.floor(Math.random()*1e6)};
+function url(i){const pr=[$('#p'+i).value,$('#m').value,$('#st').value].filter(Boolean).join(', ');return 'https://image.pollinations.ai/prompt/'+encodeURIComponent(pr)+'?model=flux&width=512&height=512&nologo=true&seed='+(+$('#seed').value||0)}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function one(i){const im=$('#i'+i);blobs[i-1]=null;im.removeAttribute('src');
+for(let t=1;t<=4;t++){$('#info').textContent='Imagen '+i+' de 3, intento '+t+' de 4… (una a una, el servicio gratuito no admite varias a la vez)';
+try{const r=await fetch(url(i));if(!r.ok)throw 0;const b=await r.blob();const o=await createImageBitmap(b);blobs[i-1]=o;im.src=URL.createObjectURL(b);return true}
+catch(e){await wait(6000)}}
+im.src=url(i);return false}
+$('#go').onclick=async()=>{if(!$('#m').value.trim()){$('#info').textContent='Escribe primero el motivo del edificio.';return}
+$('#go').disabled=true;$('#dl').disabled=true;$('#info').textContent='Generando… (puede tardar un poco)';
+const ok=[];for(const i of [1,2,3]){ok.push(await one(i));await wait(2000)}$('#go').disabled=false;
+if(ok.every(Boolean)){$('#dl').disabled=false;$('#info').textContent='Listo. Si no te convencen, cambia la semilla y vuelve a generar.'}
+else $('#info').textContent='Las imágenes se muestran, pero el navegador no deja montar la tira desde aquí: pulsa con el botón derecho (o mantén pulsado en el móvil) sobre cada una → Guardar imagen como 1.png, 2.png y 3.png, y móntalas con strips.html.'};
+$('#dl').onclick=()=>{const cv=$('#cv'),cx=cv.getContext('2d');cx.clearRect(0,0,384,128);cx.imageSmoothingQuality='high';
+blobs.forEach((b,i)=>{const m=Math.min(b.width,b.height),s=$('#cr').checked?m*.88:m,sx=$('#cr').checked?(b.width-m)/2:(b.width-s)/2,sy=$('#cr').checked?(b.height-m)/2:(b.height-s)/2;cx.drawImage(b,sx,sy,s,s,i*128,0,128,128)});
+const id=($('#id').value||'edificio').trim().toLowerCase();
+cv.toBlob(b=>{if(!b||b.type!=='image/webp'){$('#info').textContent='Este navegador no exporta WebP; usa Chrome, Edge o Firefox.';return}const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=id+'.webp';a.click()},'image/webp',.85)};
+</script></body></html>

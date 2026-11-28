@@ -279,6 +279,7 @@ Orden de carga = orden de este índice. Helpers pequeños declarados en la misma
 ## ui-art.js
 - `icon(p,c)`
 - `INV` (Set de ids de investigación con imagen cargada) · `INVN` (contador de pruebas terminadas; al llegar a todas y con `S`, hace `render`) · `tic(k)` · icono de investigación: imagen `img/research/<k>.webp` si está en `INV`, si no el SVG de `TI`; lo usa la vista Laboratorio (`view`)
+- `BLD` (objeto `id → nº de variantes` de las tiras `img/buildings/<id>.webp` cargadas) · `BLDN` (pruebas terminadas; con todas y con `S`, hace `render`) · `bic(k,L,dm)` usa la tira si `k in BLD` (variante 1-4 / 5-7 / 8+, acotada a las que haya), si no el sprite (`SPM`) y si no el SVG de `BI`
 - `NAV` · `NAVN` · `sic(t)` · igual que `tic` para las naves: imagen `img/ships/<t>.webp` si está en `NAV`, si no el SVG de `SI`; lo usa la vista Astillero (`view`)
 - `SPM`
 - `SPR`
@@ -341,3 +342,8 @@ Orden de carga = orden de este índice. Helpers pequeños declarados en la misma
 
 ## test/smoke.html (herramienta aparte; no es un módulo ni entra en `MODS`)
 - (script inline) `run()` · abre `../index.html` en un iframe, anula `fetch`/`save`/`seClaim`/`seCheck`/`checkNew`/`autoBackup` dentro de él, inyecta el JSON elegido en `S` (`prep`, `norm` por colonia, `advance`) y recorre colonias × pestañas (`selPlanet`, `go`, `tick`) y el modal `openObj` · localStorage: guarda, borra y restaura `je_code`,`je_v`,`je_sp` · informa de errores de JS, pestañas vacías y textos con undefined/NaN
+
+## tools/strips.html, strips2.html y convert.html (herramientas aparte; no son módulos ni entran en `MODS`)
+- `strips.html` · arrastras las variantes (1.png, 2.png…) de UN edificio y descarga la tira `<id>.webp` (cada variante recortada al centro a 128×128, en orden alfabético del nombre) · no toca el juego ni localStorage
+- `strips2.html` · arrastras UNA imagen y genera N variantes (2-5) con filtros de canvas (brillo, saturación, contraste y resplandor, de menos a más; slider de diferencia) y descarga la tira `<id>.webp` · no toca el juego ni localStorage
+- `convert.html` · arrastras varias imágenes y las convierte a WebP 128×128 (recorte cuadrado al centro); un campo de nombre por imagen (el id) y descarga individual o de todas · no toca el juego ni localStorage

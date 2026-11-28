@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Montar tira de edificio</title>
+<style>
+body{margin:0;padding:16px;background:#0d1523;color:#e8eefb;font:15px/1.4 system-ui,sans-serif}
+main{max-width:640px;margin:0 auto}
+h1{font-size:20px;margin:0 0 8px}
+p,.st{color:#93a4c4;font-size:13px}
+#dz{border:2px dashed #2a3b5e;border-radius:12px;padding:28px;text-align:center;background:#16213a;cursor:pointer}
+#dz.on{border-color:#5be3b0}
+input[type=text]{width:100%;padding:10px;border-radius:8px;border:1px solid #2a3b5e;background:#16213a;color:#e8eefb;font:inherit;margin:6px 0 10px}
+button{width:100%;background:#5be3b0;color:#06231a;border:0;border-radius:8px;padding:12px;font:inherit;font-weight:600;cursor:pointer;margin-top:8px}
+button:disabled{background:#26344f;color:#93a4c4;cursor:default}
+canvas{max-width:100%;border:1px solid #2a3b5e;border-radius:8px;background:#0d1523;margin-top:10px}
+</style></head><body><main>
+<h1>Montar tira de edificio</h1>
+<p>Arrastra aquí las variantes de UN edificio (o pulsa para elegirlas). Se colocan de izquierda a derecha por orden alfabético del nombre del archivo (<b>1.png, 2.png, 3.png</b>…): la primera es la de los niveles 1-4, la segunda la de 5-7 y la tercera la de 8 o más. Cada una se recorta al centro y se reduce a 128×128.</p>
+<div id="dz">Arrastra las imágenes aquí o pulsa para elegirlas</div>
+<input id="f" type="file" accept="image/*" multiple hidden>
+<div class="st" style="margin-top:10px">Id del edificio (nombre del archivo: z, m, u, o, k, w, t, d, v, p, h, r)</div>
+<input id="id" type="text" placeholder="p. ej. w" maxlength="2">
+<div class="st">Calidad WebP: <b id="qv">85</b></div>
+<input id="q" type="range" min="60" max="100" value="85" style="width:100%">
+<div id="info" class="st"></div>
+<canvas id="cv" width="128" height="128" hidden></canvas>
+<button id="dl" disabled>Descargar tira .webp</button>
+</main>
+<script>
+const $=s=>document.querySelector(s),cv=$('#cv'),cx=cv.getContext('2d');let imgs=[];
+function load(files){const fs=[...files].filter(f=>f.type.startsWith('image/')).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+Promise.all(fs.map(f=>new Promise((ok,ko)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=ko;im.src=URL.createObjectURL(f)}))).then(a=>{imgs=a;draw()}).catch(()=>{$('#info').textContent='No se ha podido leer alguna imagen.'})}
+function draw(){const n=imgs.length;if(!n){cv.hidden=true;$('#dl').disabled=true;return}
+cv.width=128*n;cv.height=128;cx.clearRect(0,0,cv.width,cv.height);cx.imageSmoothingQuality='high';
+imgs.forEach((im,i)=>{const s=Math.min(im.naturalWidth,im.naturalHeight),sx=(im.naturalWidth-s)/2,sy=(im.naturalHeight-s)/2;cx.drawImage(im,sx,sy,s,s,i*128,0,128,128)});
+cv.hidden=false;$('#dl').disabled=false;$('#info').textContent=n+' variante'+(n>1?'s':'')+' → '+cv.width+'×128'}
+const dz=$('#dz'),f=$('#f');dz.onclick=()=>f.click();f.onchange=()=>load(f.files);
+dz.ondragover=e=>{e.preventDefault();dz.classList.add('on')};dz.ondragleave=()=>dz.classList.remove('on');
+dz.ondrop=e=>{e.preventDefault();dz.classList.remove('on');load(e.dataTransfer.files)};
+$('#q').oninput=e=>{$('#qv').textContent=e.target.value};
+$('#dl').onclick=()=>{const id=($('#id').value||'edificio').trim().toLowerCase();cv.toBlob(b=>{if(!b||b.type!=='image/webp'){$('#info').textContent='Este navegador no exporta WebP; usa Chrome, Edge o Firefox.';return}const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=id+'.webp';a.click()},'image/webp',$('#q').value/100)};
+</script></body></html>
